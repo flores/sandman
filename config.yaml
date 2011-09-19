@@ -1,0 +1,23 @@
+WOGQA:
+  site:  qa.writeonglass.com
+  ssl:   yes
+  environment_id: 5
+  db_depends: RetrollectAppQA
+RetrollectAppQA:
+  site:  retrollect-qa.writeonglass.com
+  uri:   /api
+  ssl:   yes
+  db_depends: WOGQA
+  environment_id: 30
+BoStyQA:
+  site:  qa.borderstylo.com
+MediaQA:
+  site:  media-qa.writeonglass.com
+Demo:
+  site:  demo.writeonglass.com
+  ssl:   yes
+  environment_id: 35
+DistopiaTest:
+  site:  distopiatest.writeonglass.com
+  ssl:   yes
+  environment_id: 47

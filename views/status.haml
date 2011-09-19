@@ -1,0 +1,17 @@
+%p Hi #{@user}!  Here's the environments I know about.
+%table
+  %tr
+    %th site
+    %th status
+    %th
+  - @status.sort.each do |site,result|
+    %tr
+      %td{:align => "right"} #{site}
+      %td{:align => "center"} #{result}
+      %td
+        - if result == 'UP'
+          %form{:action => "flip/#{site}/down", :method => "post"}
+            %input{:type => "submit", :value => "take #{site} down!", :length => 15, :size => 15}
+        - else
+          %form{:action => "flip/#{site}/up", :method => "post"}
+            %input{:type => "submit", :value => "restore #{site}", :length => 15, :size => 15}
