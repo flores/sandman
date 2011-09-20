@@ -20,6 +20,31 @@ def authenticate()
         	return nil
 	end
 end
+
+def check(property)
+	fqdn = SITES[property]["site"]
+	puts "#{fqdn} is the web property value"
+	if ( SITES[property]["ssl"] )
+		puts "this site is SSL"
+		http = Net::HTTP.new(fqdn, 443)
+		http.use_ssl = true
+	else
+		http = Net::HTTP.new(fqdn, 80)
+	end
+	http.read_timeout = 200
+	if ( SITES[property]["uri"] )
+		uri=SITES[property]["uri"]
+	else
+		uri='/'
+	end
+	res = http.start.head2(uri)
+	if ( res.code == "200" )
+		return 'UP'
+	else
+		return 'DOWN'
+	end
+end
+	
 	
 SITES = YAML.load_file 'config.yaml'
 
@@ -41,37 +66,27 @@ get '/status' do
 	end
 	@status = Hash.new
 	SITES.each do |property,value|
-		fqdn = SITES[property]["site"]
-		puts "#{fqdn} is the web property value"
-		if ( SITES[property]["ssl"] )
-			puts "this site is SSL"
-			http = Net::HTTP.new(fqdn, 443)
-			http.use_ssl = true
-		else
-			http = Net::HTTP.new(fqdn, 80)
-		end
-		http.read_timeout = 200
-		if ( SITES[property]["uri"] )
-			uri=SITES[property]["uri"]
-		else
-			uri='/'
-		end
-		res = http.start.head2(uri)
-		@status[property] = 'DOWN';
-		if ( res.code == "200" )
-			@status[property] = 'UP';
-		else
-			@status[property] = 'DOWN';
-		end
+		@status[property] = check(property)
 	end
 	haml :status
 end
 
 post '/flip/:property/down' do
 	require 'net/ssh'
-	e_id=SITES["#{params[:property]}"]["environment_id"]
+	e_id   = SITES["#{params[:property]}"]["environment_id"]
+	shared = SITES["#{params[:property]}"]["shared"]
+
+	# lets find out if the shared servers are up
+	if ( shared )
+		if ( check(shared) == 'UP' )
+			skipservers = 'true'
+		else
+			skipservers = 'down'
+		end
+	end
+
 	if (e_id)
-		command="cd distopia; ruby -e \"require 'distopia'; Environment[#{e_id}].suspend(:prompt => false, :skip_mysql_servers => false)\""
+		command="cd distopia; ruby -e \"require 'distopia'; Environment[#{e_id}].suspend(:prompt => false, :skip_shared_servers => #{skipservers})\""
 		@message = "we are now stopping #{params[:property]}"
 		Thread.new {
 			Net::SSH.start( "distopia.writeonglass.com", "root") do|ssh|
