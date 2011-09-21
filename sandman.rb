@@ -78,10 +78,12 @@ post '/flip/:property/down' do
 
 	# lets find out if the shared servers are up
 	if ( shared )
-		if ( check(shared) == 'UP' )
-			skipservers = 'true'
-		else
-			skipservers = 'down'
+		shared.each do |sharedproperty|
+			if ( check(sharedproperty) == 'UP' )
+				skipservers = 'true'
+			else
+				skipservers = 'down'
+			end
 		end
 	end
 
