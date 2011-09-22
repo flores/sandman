@@ -1,0 +1,7 @@
+*
+ { font-family: georgia,serif; vertical-align:baseline; }
+input[id="down"]
+	{  background-color: red; color: white; width:25em; }
+input[id="up"]
+	{  background-color: green; color: white; width:25em; }
+
