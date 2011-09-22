@@ -5,19 +5,14 @@ WOGQA:
   shared: [ RetrollectAppQA, Demo ]
 RetrollectAppQA:
   site:  retrollect-qa.writeonglass.com
-  uri:   /api
   ssl:   yes
+  uri:   api
   shared: [ WOGQA, Demo ]
   environment_id: 30
 BoStyQA:
   site:  qa.borderstylo.com
 MediaQA:
   site:  media-qa.writeonglass.com
-Demo:
-  site:  demo.writeonglass.com
-  ssl:   yes
-  environment_id: 35
-  shared: [ WOGQA, RetrollectAppQA ]
 DistopiaTest:
   site:  distopiatest.writeonglass.com
   ssl:   yes
