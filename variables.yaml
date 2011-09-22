@@ -1,0 +1,33 @@
+--- 
+WOGQA: 
+  last_activity_when: 
+  persist: 
+  last_activity: 
+  last_activity_who: 
+MediaQA: 
+  last_activity_when: 2011-09-22T00:22:22+00:00
+  persist: "no"
+  last_activity: down
+  last_activity_who: cflores
+BoStyQA: 
+  last_activity_when: 
+  persist: 
+  last_activity: 
+  last_activity_who: 
+Demo: 
+  last_activity_when: 
+  persist: 
+  last_activity: 
+  last_activity_who: 
+RetrollectAppQA: 
+  last_activity_when: 2011-09-21 22:53:24 +00:00
+  persist: "no"
+  last_activity: up
+  last_activity_who: cflores
+  ~: "no"
+DistopiaTest: 
+  last_activity_when: 2011-09-22 00:13:19 +00:00
+  persist: "no"
+  last_activity: down
+  last_activity_who: cflores
+  ~: "no"

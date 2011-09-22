@@ -33,20 +33,29 @@ def check(property)
 	end
 	http.read_timeout = 200
 	if ( SITES[property]["uri"] )
-		uri=SITES[property]["uri"]
+		uri="/#{SITES[property]["uri"]}"
 	else
 		uri='/'
 	end
-	res = http.start.head2(uri)
-	if ( res.code == "200" )
+	puts "uri is #{uri}"
+	res = http.start.get(uri)
+	puts "response is #{res.code}"
+	if ( res.code =~ /^(2|3)/ )
 		return 'UP'
 	else
 		return 'DOWN'
 	end
 end
+
+def logallofit()
+	File.open("variables.yaml", "w") do |file|
+  		file.write VARIABLES.to_yaml
+	end
+end
 	
 	
 SITES = YAML.load_file 'config.yaml'
+VARIABLES = YAML.load_file 'variables.yaml'
 
 set :environment, :production
 set :bind, 'localhost'
@@ -61,7 +70,7 @@ end
 
 get '/status' do
 	@user=authenticate()
-	unless @user =~ /jhhm|dlockhart|cflores|dprats|llakey|dyoder/
+	unless @user =~ /jhhm|dlockhart|cflores|dprats|llakey|dyoder|jgonzalez|dhengeveld/
 		redirect '/unauthenticated'
 	end
 	@status = Hash.new
@@ -72,6 +81,23 @@ get '/status' do
 end
 
 post '/flip/:property/down' do
+	property = params[:property]
+	persist  = params["persist"]
+
+	VARIABLES = YAML.load_file 'variables.yaml'
+	
+	VARIABLES[property]["last_activity"] = "down"
+	VARIABLES[property]["last_activity_who"] = authenticate()
+	VARIABLES[property]["last_activity_when"] = DateTime.now
+
+	if ( persist )
+		VARIABLES[property]["persist"] = "yes"
+	else
+		VARIABLES[property]["persist"] = "no"
+	end
+
+	logallofit()
+
 	require 'net/ssh'
 	e_id   = SITES["#{params[:property]}"]["environment_id"]
 	shared = SITES["#{params[:property]}"]["shared"]
@@ -81,10 +107,13 @@ post '/flip/:property/down' do
 		shared.each do |sharedproperty|
 			if ( check(sharedproperty) == 'UP' )
 				skipservers = 'true'
+				break
 			else
-				skipservers = 'down'
+				skipservers = 'false'
 			end
 		end
+	else
+		skipservers = 'true'
 	end
 
 	if (e_id)
@@ -96,14 +125,32 @@ post '/flip/:property/down' do
 			end
 		}
 	else 	
-		message = "I do not know how to start or stop #{params[:property]}.  Please bother Carlo."
+		@message = "I do not know how to start or stop #{params[:property]}.  Please bother Carlo."
 	end
 	haml :flip
 end
 
 post '/flip/:property/up' do
+
+	property = params[:property]
+	persist  = params["persist"]
+
+	VARIABLES = YAML.load_file 'variables.yaml'
+	VARIABLES[property]["last_activity"] = "up"
+	VARIABLES[property]["last_activity_who"] = authenticate()
+	VARIABLES[property]["last_activity_when"] = DateTime.now
+
+	if ( persist )
+		VARIABLES[property]["persist"] = "yes"
+	else
+		VARIABLES[property][persist] = "no"
+	end
+
+	logallofit()
+
 	require 'net/ssh'
-	e_id=SITES["#{params[:property]}"]["environment_id"]
+	
+	e_id=SITES[property]["environment_id"]
 	if (e_id)
 		command="cd distopia; ruby -e \"require 'distopia'; Environment[#{e_id}].start\""
 		@message = "we are now spinning #{params[:property]} up.  this will take several minutes."
@@ -113,13 +160,16 @@ post '/flip/:property/up' do
 			end
 		}
 	else 	
-		message = "I do not know how to start or stop #{params[:property]}.  Please bother Carlo."
+		@message = "I do not know how to start or stop #{params[:property]}.  Please bother Carlo."
 	end
 	haml :flip
 end
 
 get '/flip/:property/up' do
 	property = params[:property]
+	persist  = params["persist"]
+	
+		
 	fqdn = SITES[property]["site"]
 	puts "#{fqdn} is the web property value"
 	if ( SITES[property]["ssl"] )
@@ -143,6 +193,17 @@ end
 
 get '/flip/:property/down' do
 	property = params[:property]
+	
+	VARIABLES[property][last_activity] = "down"
+	VARIABLES[property][last_activity_who] = authenticate()
+	VARIABLES[property][last_activity_when] = DateTime.now
+
+	if ( persist )
+		VARIABLES[property][persist] = "yes"
+	else
+		VARIABLES[property][persist] = "no"
+	end
+	
 	fqdn = SITES[property]["site"]
 	puts "#{fqdn} is the web property value"
 	if ( SITES[property]["ssl"] )
@@ -163,3 +224,8 @@ get '/flip/:property/down' do
 		redirect '/status'
 	end
 end
+
+get '/sandman.css' do
+	File.read(File.join('public', 'sandman.css'))
+end
+

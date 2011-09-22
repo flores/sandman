@@ -1,17 +1,36 @@
 %p Hi #{@user}!  Here's the environments I know about.
-%table
+%table{:cellpadding => "10"}
   %tr
     %th site
     %th status
-    %th
+    %th action
+    %th last action
   - @status.sort.each do |site,result|
+    - if result == 'UP'
+      - color = 'green'
+    - else
+      - color = 'red'
     %tr
-      %td{:align => "right"} #{site}
-      %td{:align => "center"} #{result}
-      %td
+      %td{:align => "right"} <font color='#{color}'>#{site}</font>
+      %td{:align => "center"} <font color='#{color}'>#{result}</font>
+      </font>
+      %td{:align => "center"}
         - if result == 'UP'
           %form{:action => "flip/#{site}/down", :method => "post"}
-            %input{:type => "submit", :value => "take #{site} down!", :length => 15, :size => 15}
+            %input{:type => "submit", :value => "take #{site} down!", :length => 15, :size => 15, :id => 'down'}
+            %br
+            %label don't automagically restart
+            %input{:type => "checkbox", :value => "persist"} 
         - else
           %form{:action => "flip/#{site}/up", :method => "post"}
-            %input{:type => "submit", :value => "restore #{site}", :length => 15, :size => 15}
+            %input{:type => "submit", :value => "restore #{site}", :length => 15, :size => 15, :id => 'up'}
+            %br
+            %label don't automagically stop it
+            %input{:type => "checkbox", :value => "persist"}
+      %td{:align => "align"}
+        - if VARIABLES[site]["last_activity"] =~ /up|down/
+          the site was last taken #{VARIABLES[site]["last_activity"]} <br />
+          by #{VARIABLES[site]["last_activity_who"]}  <br />
+          on #{VARIABLES[site]["last_activity_when"]} <br />
+          - if VARIABLES[site]["persist"] == 'yes'
+            that setting will not automatically change <br />
